@@ -1,2 +1,2 @@
 # ansible-sslmate
-Ansible module for automating TLS certificate purchasing and renewal using sslmate.
+Ansible module for automating TLS certificate purchasing and renewal using [sslmate](https://sslmate.com/).
