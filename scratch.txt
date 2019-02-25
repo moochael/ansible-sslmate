@@ -1,0 +1,22 @@
+role will generate csr/keys/etc with openssl_* modules
+    https://www.jeffgeerling.com/blog/2017/generating-self-signed-openssl-certs-ansible-24s-crypto-modules
+
+sslmate module:
+    purchases cert - mvp
+    downloads cert - mvp
+    revokes cert - non mvp
+    reissies cert - non mvp
+
+
+
+ansible role:
+    generate private key (openssl_*)
+    generate csr (openssl_*)
+    request/purchase cert (sslmate)
+    update dns in route53 or ultradns (ultradns.py or aws_route53)
+    download cert (sslmate)
+
+    list certs (sslmate)
+    revoke cert (sslmate)
+
+    store/upload certs (???)
