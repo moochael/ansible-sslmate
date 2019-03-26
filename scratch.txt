@@ -1,3 +1,7 @@
+openssl genrsa -out openssl/davidmacbale.com.key 2048
+openssl req -config openssl/openssl.cnf -new -sha256 -key openssl/davidmacbale.com.key -out openssl/davidmacbale.com.csr
+
+
 role will generate csr/keys/etc with openssl_* modules
     https://www.jeffgeerling.com/blog/2017/generating-self-signed-openssl-certs-ansible-24s-crypto-modules
 
@@ -6,8 +10,6 @@ sslmate module:
     downloads cert - mvp
     revokes cert - non mvp
     reissies cert - non mvp
-
-
 
 ansible role:
     generate private key (openssl_*)
