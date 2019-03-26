@@ -1,3 +1,9 @@
-.vscode/
+### Python Env ###
 Pipfile
 Pipfile.lock
+
+### VSCode ###
+.vscode/
+*.code-workspace
+
+openssl/
