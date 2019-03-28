@@ -1,3 +1,8 @@
+letsencrypt module:
+https://github.com/ansible/ansible/blob/devel/lib/ansible/modules/crypto/acme/acme_certificate.py
+https://docs.ansible.com/ansible/2.5/modules/letsencrypt_module.html
+
+
 openssl genrsa -out openssl/davidmacbale.com.key 2048
 openssl req -config openssl/openssl.cnf -new -sha256 -key openssl/davidmacbale.com.key -out openssl/davidmacbale.com.csr
 
@@ -22,3 +27,13 @@ ansible role:
     revoke cert (sslmate)
 
     store/upload certs (???)
+
+
+# 1. generate csr and key
+#     openssl genrsa -out openssl/davidmacbale.com.key 2048
+#     openssl req -config openssl/openssl.cnf -new -sha256 -key openssl/davidmacbale.com.key -out openssl/davidmacbale.com.csr
+
+# 2. Create certificate object
+# 3. Buy the certificate
+# 4. Validate dns
+# 5. Download/get the certificate
