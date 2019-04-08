@@ -5,6 +5,3 @@ Pipfile.lock
 ### VSCode ###
 .vscode/
 *.code-workspace
-
-openssl/
-secrets.py
