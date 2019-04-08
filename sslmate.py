@@ -34,6 +34,14 @@ options:
         description:
             - "Description here"
         required: true
+    action:
+        description:
+            - "Description here"
+        required: true
+    csr:
+        description:
+            - "Description here"
+        required: false
 
 author:
     - David Macbale (@moochael)
@@ -51,12 +59,70 @@ from ansible.module_utils.basic import AnsibleModule
 import requests
 import json
 
+debug = True
+use_sandbox = True
+
+certificate_object_common_name = "davidmacbale.com"
+
+if use_sandbox == True:
+    base_api_endpoint = "https://sandbox.sslmate.com/api/v2/{}"
+else:
+    base_api_endpoint = "https://sslmate.com/api/v2/{}"
+
+def create_certificate_object(domain, csr, api_key, debug=0):
+    file_to_open = csr
+    with open('%s' % file_to_open) as csr_file:
+        csr_data = csr_file.read()
+    cert_data = {'csr': csr_data, 'approval_method': 'dns'}
+
+    create_api_endpoint = base_api_endpoint.format("certs/{}/".format(certificate_object_common_name))
+    request = requests.post(create_api_endpoint, data=cert_data, auth=(api_key,""))
+    pubkey_hash = request.json()['pubkey_hash']
+
+    if debug == 1:
+        print("Create Cert Object Response JSON:")
+        print(request.json())
+
+    return(pubkey_hash)
+
+def buy_certificate(domain, api_key, debug=0):
+    buy_api_endpoint = base_api_endpoint.format("certs/{}/buy".format(certificate_object_common_name))
+    request = requests.post(buy_api_endpoint, auth=(api_key,""))
+
+    if debug == 1:
+        print("Buy Cert Response JSON:")
+        print(request.json())
+
+def retrive_certificate_object(domain, hash, api_key, debug=0):
+    retrieve_cert_endpoint = base_api_endpoint.format("certs/{}/instances/pubkey_hash:{}".format(certificate_object_common_name, hash))
+
+    request = requests.get(retrieve_cert_endpoint, auth=(api_key,""))
+
+    if debug == 1:
+        print("Retreive Cert Response JSON:")
+        print(request.json())
+
+def revoke_sslmate_certificate(domain, api_key, debug=0):
+    revoke_api_endpoint = base_api_endpoint.format("certs/{}/revoke".format(certificate_object_common_name))
+    cert_data = {'all': 'true'}
+    request = requests.post(revoke_api_endpoint, data=cert_data, auth=(api_key,""))
+
+    if debug == 1:
+        print("Revoke Cert Response JSON:")
+        print(request.json())
+
+    pubkey_hash = (create_certificate_object(certificate_object_common_name, csr, api_key, debug=0))
+    retrive_certificate_object(certificate_object_common_name, pubkey_hash, api_key, debug)
+
+
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
+        action=dict(type='str', required=True, choices=['buy', 'renew', 'revoke']),
+        api_key=dict(type='str', required=True),
         common_name=dict(type='str', required=True),
-        sandbox=dict(type='bool', required=False, default=False),
-        api_key=dict(type='str', required=True)
+        csr=dict(type='str', required=False),
+        sandbox=dict(type='bool', required=False, default=False)
     )
 
     # seed the result dict in the object
@@ -76,14 +142,16 @@ def run_module():
     # supports check mode
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=False
     )
 
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
-    if module.check_mode:
-        return result
+    if module.params.get('action') == 'buy':
+        api_key = module.params.get('api_key')
+        common_name = module.params.get('common_name')
+        csr = module.params.get('csr')
+
+        create_certificate_object(common_name, csr, api_key, debug=0)
+        #buy_certificate(common_name, api_key, debug=0)
 
     # manipulate or modify the state as needed (this is going to be the
     # part where your module will do what it needs to do)
