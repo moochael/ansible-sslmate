@@ -16,9 +16,6 @@ if use_sandbox == True:
 else:
     base_api_endpoint = "https://sslmate.com/api/v2/{}"
 
-print(base_api_endpoint)
-sys.exit()
-
 def create_certificate_object(domain, debug=0):
     file_to_open = "openssl/" + domain + ".csr"
     with open('%s' % file_to_open) as csr_file:
@@ -66,8 +63,8 @@ def revoke_sslmate_certificate(domain, debug=0):
 
 try:
     print("Starting certificate process:")
-    create_certificate_object(certificate_object_common_name, debug)
-    buy_certificate(certificate_object_common_name, debug)
+    #create_certificate_object(certificate_object_common_name, debug)
+    #buy_certificate(certificate_object_common_name, debug)
     revoke_sslmate_certificate(certificate_object_common_name, debug)
 
 except:

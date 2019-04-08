@@ -24,9 +24,13 @@ description:
 options:
     common_name:
         description:
-            - "Description here"
+            - "The fqdn for the certificate object you would like to manipulate."
         required: true
-    type:
+    sandbox:
+        description:
+            - "Description here"
+        required: false
+    api_key:
         description:
             - "Description here"
         required: true
@@ -45,12 +49,14 @@ RETURN = '''
 
 from ansible.module_utils.basic import AnsibleModule
 import requests
+import json
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        name=dict(type='str', required=True),
-        new=dict(type='bool', required=False, default=False)
+        common_name=dict(type='str', required=True),
+        sandbox=dict(type='bool', required=False, default=False),
+        api_key=dict(type='str', required=True)
     )
 
     # seed the result dict in the object
