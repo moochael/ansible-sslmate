@@ -28,11 +28,12 @@ options:
         required: true
     sandbox:
         description:
-            - "Description here"
+            - "Boolean. Whether or not to use the sandbox SSLMate API."
         required: false
+        default: False
     api_key:
         description:
-            - "Description here"
+            - "Your credentials (API key) to authenticate to SSLMate. If you're using the sandbox API you'll need a sandbox API key that differs from your production key."
         required: true
     action:
         description:
@@ -40,7 +41,11 @@ options:
         required: true
     csr:
         description:
-            - "Description here"
+            - "The path to the csr file."
+        required: false
+    publickey_hashed:
+        description:
+            - "The hash of the public key used to identify the certificate object on SSLMate."
         required: false
 
 author:
@@ -62,8 +67,6 @@ import json
 debug = True
 use_sandbox = True
 
-certificate_object_common_name = "davidmacbale.com"
-
 if use_sandbox == True:
     base_api_endpoint = "https://sandbox.sslmate.com/api/v2/{}"
 else:
@@ -75,26 +78,26 @@ def create_certificate_object(domain, csr, api_key, debug=0):
         csr_data = csr_file.read()
     cert_data = {'csr': csr_data, 'approval_method': 'dns'}
 
-    create_api_endpoint = base_api_endpoint.format("certs/{}/".format(certificate_object_common_name))
+    create_api_endpoint = base_api_endpoint.format("certs/{}/".format(domain))
     request = requests.post(create_api_endpoint, data=cert_data, auth=(api_key,""))
-    pubkey_hash = request.json()['pubkey_hash']
+    publickey_hashed = request.json()['pubkey_hash']
 
     if debug == 1:
         print("Create Cert Object Response JSON:")
         print(request.json())
 
-    return(pubkey_hash)
+    return(publickey_hashed)
 
 def buy_certificate(domain, api_key, debug=0):
-    buy_api_endpoint = base_api_endpoint.format("certs/{}/buy".format(certificate_object_common_name))
+    buy_api_endpoint = base_api_endpoint.format("certs/{}/buy".format(domain))
     request = requests.post(buy_api_endpoint, auth=(api_key,""))
 
     if debug == 1:
         print("Buy Cert Response JSON:")
         print(request.json())
 
-def retrive_certificate_object(domain, hash, api_key, debug=0):
-    retrieve_cert_endpoint = base_api_endpoint.format("certs/{}/instances/pubkey_hash:{}".format(certificate_object_common_name, hash))
+def retrieve_certificate_object(domain, hash, api_key, debug=0):
+    retrieve_cert_endpoint = base_api_endpoint.format("certs/{}/instances/pubkey_hash:{}".format(domain, hash))
 
     request = requests.get(retrieve_cert_endpoint, auth=(api_key,""))
 
@@ -102,8 +105,8 @@ def retrive_certificate_object(domain, hash, api_key, debug=0):
         print("Retreive Cert Response JSON:")
         print(request.json())
 
-def revoke_sslmate_certificate(domain, api_key, debug=0):
-    revoke_api_endpoint = base_api_endpoint.format("certs/{}/revoke".format(certificate_object_common_name))
+def revoke_sslmate_certificate(domain, csr, api_key, debug=0):
+    revoke_api_endpoint = base_api_endpoint.format("certs/{}/revoke".format(domain))
     cert_data = {'all': 'true'}
     request = requests.post(revoke_api_endpoint, data=cert_data, auth=(api_key,""))
 
@@ -111,8 +114,8 @@ def revoke_sslmate_certificate(domain, api_key, debug=0):
         print("Revoke Cert Response JSON:")
         print(request.json())
 
-    pubkey_hash = (create_certificate_object(certificate_object_common_name, csr, api_key, debug=0))
-    retrive_certificate_object(certificate_object_common_name, pubkey_hash, api_key, debug)
+    publickey_hashed = (create_certificate_object(domain, csr, api_key, debug=0))
+    retrieve_certificate_object(domain, publickey_hashed, api_key, debug)
 
 
 def run_module():
@@ -122,6 +125,7 @@ def run_module():
         api_key=dict(type='str', required=True),
         common_name=dict(type='str', required=True),
         csr=dict(type='str', required=False),
+        publickey_hashed=dict(type='str', required=False),
         sandbox=dict(type='bool', required=False, default=False)
     )
 
@@ -151,7 +155,7 @@ def run_module():
         csr = module.params.get('csr')
 
         create_certificate_object(common_name, csr, api_key, debug=0)
-        #buy_certificate(common_name, api_key, debug=0)
+        buy_certificate(common_name, api_key, debug=0)
 
     # manipulate or modify the state as needed (this is going to be the
     # part where your module will do what it needs to do)
